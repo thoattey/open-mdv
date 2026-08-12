@@ -1,0 +1,47 @@
+# Local databases for development. Start only the one you configured in
+# .env.local — they are separate profiles so neither runs by default.
+#
+#   docker compose --profile mysql up -d
+#   docker compose --profile postgres up -d
+
+services:
+  mysql:
+    image: mysql:8.4
+    profiles: [mysql]
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mdv_map
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    command:
+      # Geometry batches routinely exceed the 4MB default.
+      - --max_allowed_packet=64M
+      - --local-infile=1
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      retries: 20
+
+  postgres:
+    image: postgis/postgis:16-3.4
+    profiles: [postgres]
+    environment:
+      POSTGRES_DB: mdv_map
+      POSTGRES_USER: mdv
+      POSTGRES_PASSWORD: mdv
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mdv -d mdv_map"]
+      interval: 5s
+      retries: 20
+
+volumes:
+  mysql-data:
+  postgres-data:
