@@ -1,0 +1,62 @@
+[addresses] tiles=37 queue=198 split=0 features=0
+[addresses] tiles=68 queue=167 split=0 features=857
+[addresses] tiles=77 queue=170 split=3 features=3857
+[addresses] tiles=116 queue=160 split=10 features=7799
+[addresses] tiles=159 queue=161 split=21 features=14558
+[addresses] tiles=206 queue=141 split=28 features=27536
+[addresses] tiles=254 queue=129 split=37 features=34124
+[addresses] tiles=302 queue=109 split=44 features=43343
+[addresses] tiles=344 queue=103 split=53 features=54661
+[addresses] tiles=385 queue=98 split=62 features=64594
+[addresses] tiles=412 queue=83 split=65 features=68233
+[addresses] tiles=437 queue=74 split=69 features=74403
+[addresses] tiles=472 queue=75 split=78 features=78517
+[addresses] tiles=512 queue=77 split=88 features=83987
+[addresses] tiles=559 queue=52 split=94 features=90063
+[addresses] tiles=608 queue=11 split=96 features=92465
+[addresses] DONE tiles=622 split=96 features=92465 (+92465)
+[addresses] 84.2s
+
+[parcels] tiles=49 queue=186 split=0 features=0
+[parcels] tiles=90 queue=153 split=2 features=1777
+[parcels] tiles=124 queue=159 split=12 features=6823
+[parcels] tiles=151 queue=145 split=15 features=11323
+[parcels] tiles=196 queue=99 split=15 features=11323
+[parcels] tiles=242 queue=54 split=15 features=11323
+[parcels] tiles=290 queue=5 split=15 features=11323
+[parcels] DONE tiles=298 split=15 features=11323 (+11323)
+[parcels] 36.7s
+
+[house_parcels] tiles=48 queue=187 split=0 features=0
+[house_parcels] tiles=87 queue=156 split=2 features=5751
+[house_parcels] tiles=128 queue=143 split=9 features=12964
+[house_parcels] tiles=173 queue=126 split=16 features=19078
+[house_parcels] tiles=220 queue=96 split=20 features=28783
+[house_parcels] tiles=265 queue=74 split=26 features=38174
+[house_parcels] tiles=300 queue=55 split=30 features=44124
+[house_parcels] tiles=343 queue=12 split=30 features=46915
+[house_parcels] DONE tiles=358 split=30 features=46915 (+46915)
+[house_parcels] 43.5s
+
+[plot_lines] tiles=40 queue=195 split=0 features=0
+[plot_lines] tiles=75 queue=160 split=0 features=1420
+[plot_lines] tiles=114 queue=169 split=12 features=11020
+[plot_lines] tiles=155 queue=168 split=22 features=19237
+[plot_lines] tiles=201 queue=168 split=33 features=29281
+[plot_lines] tiles=243 queue=144 split=38 features=39563
+[plot_lines] tiles=290 queue=130 split=46 features=46341
+[plot_lines] tiles=335 queue=108 split=52 features=53884
+[plot_lines] tiles=378 queue=97 split=60 features=63576
+[plot_lines] tiles=426 queue=73 split=66 features=75180
+[plot_lines] tiles=474 queue=73 split=78 features=80905
+[plot_lines] tiles=521 queue=57 split=85 features=86527
+[plot_lines] tiles=560 queue=19 split=86 features=90184
+[plot_lines] DONE tiles=582 split=86 features=90184 (+90184)
+[plot_lines] 69.4s
+
+SUMMARY {
+  addresses: 92465,
+  parcels: 11323,
+  house_parcels: 46915,
+  plot_lines: 90184
+}

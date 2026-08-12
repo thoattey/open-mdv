@@ -1,0 +1,446 @@
+
+> rajje-app-clone@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.0 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.36:3000
+- Environments: .env.local
+✓ Ready in 630ms
+✓ Running next.config.ts took 50ms
+
+ GET / 200 in 2.3s (next.js: 2.1s, application-code: 221ms)
+ GET /api/search-residents?action=test 500 in 450ms (next.js: 350ms, application-code: 100ms)
+ GET / 200 in 77ms (next.js: 13ms, application-code: 64ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=airports 500 in 366ms (next.js: 232ms, application-code: 134ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=atoll_boundaries 500 in 383ms (next.js: 263ms, application-code: 120ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=atoll_capitals 500 in 381ms (next.js: 248ms, application-code: 134ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=island_names 500 in 384ms (next.js: 240ms, application-code: 144ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=administrative_atolls 500 in 390ms (next.js: 268ms, application-code: 122ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=airports 500 in 54ms (next.js: 5ms, application-code: 49ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=atoll_boundaries 500 in 46ms (next.js: 12ms, application-code: 34ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=atoll_capitals 500 in 49ms (next.js: 19ms, application-code: 30ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=island_names 500 in 52ms (next.js: 26ms, application-code: 26ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=administrative_atolls 500 in 53ms (next.js: 33ms, application-code: 20ms)
+  Reload env: .env.local
+ GET / 200 in 467ms (next.js: 417ms, application-code: 50ms)
+ GET / 200 in 411ms (next.js: 53ms, application-code: 358ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=atoll_boundaries 500 in 175ms (next.js: 87ms, application-code: 88ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=administrative_atolls 500 in 182ms (next.js: 113ms, application-code: 69ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=airports 500 in 186ms (next.js: 122ms, application-code: 64ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=atoll_capitals 500 in 82ms (next.js: 30ms, application-code: 52ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=island_names 500 in 84ms (next.js: 41ms, application-code: 43ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=atoll_boundaries 500 in 69ms (next.js: 5ms, application-code: 64ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=administrative_atolls 500 in 71ms (next.js: 17ms, application-code: 54ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=airports 500 in 75ms (next.js: 28ms, application-code: 47ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=atoll_capitals 500 in 82ms (next.js: 39ms, application-code: 43ms)
+[api/layers] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async fetchLayer (src\lib\geojson.ts:81:16)
+    at async GET (src\app\api\layers\route.ts:37:24)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/layers?layer=island_names 500 in 73ms (next.js: 41ms, application-code: 32ms)
+[api/search-residents] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async GET (src\app\api\search-residents\route.ts:62:18)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/search-residents?action=search&q=Mala 500 in 318ms (next.js: 238ms, application-code: 80ms)
+[api/search-islands] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async GET (src\app\api\search-islands\route.ts:28:18)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/search-islands?q=Mala 500 in 321ms (next.js: 300ms, application-code: 20ms)
+[api/search-residents] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async GET (src\app\api\search-residents\route.ts:62:18)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/search-residents?action=search&q=Malas 500 in 30ms (next.js: 4ms, application-code: 25ms)
+[api/search-islands] Error: Access denied for user 'mdv'@'localhost' (using password: YES)
+    at query (src\lib\db\index.ts:65:32)
+    at async GET (src\app\api\search-islands\route.ts:28:18)
+  63 |     return res.rows as T[];
+  64 |   }
+> 65 |   const [rows] = await db.pool.query(sql, params);
+     |                                ^
+  66 |   return rows as T[];
+  67 | }
+  68 | {
+  code: 'ER_ACCESS_DENIED_ERROR',
+  errno: 1045,
+  sqlState: '28000',
+  sqlMessage: "Access denied for user 'mdv'@'localhost' (using password: YES)",
+  sql: undefined
+}
+ GET /api/search-islands?q=Malas 500 in 33ms (next.js: 16ms, application-code: 17ms)
+[?25h
