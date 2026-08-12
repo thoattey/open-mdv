@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scraped personal data — never commit. Real names, national ID numbers,
+# dates of birth and home addresses. Use the synthetic dataset instead:
+# npm run db:seed  ->  _export/residents.synthetic.json
+_scrape/data/residents.ndjson
+_scrape/data/residents.state.json
