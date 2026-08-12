@@ -1,0 +1,18 @@
+{
+  "exportedAt": "2026-08-11T06:55:09.194Z",
+  "layers": {
+    "addresses": 92465,
+    "administrative_atolls": 21,
+    "airports": 19,
+    "atoll_boundaries": 22,
+    "atoll_capitals": 21,
+    "house_parcels": 46915,
+    "island_names": 1187,
+    "parcels": 11323,
+    "plot_lines": 90184
+  },
+  "residents": {
+    "count": 25000,
+    "synthetic": true
+  }
+}
