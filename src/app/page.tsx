@@ -1,69 +1,244 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import dynamic from 'next/dynamic';
+import { X } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+
+import { FeatureSheet } from '@/components/map/feature-sheet';
+import { HeaderActions, InfoBar, Logo, ZoomControls } from '@/components/map/map-chrome';
+import type { FeatureHit, MapHandle } from '@/components/map/map-view';
+import { LayerPanel } from '@/components/map/layer-panel';
+import { LoadingOverlay } from '@/components/map/loading-overlay';
+import {
+  SearchBox,
+  type AddressResult,
+  type IslandResult,
+  type ResidentResult,
+} from '@/components/map/search-box';
+import { useTheme } from '@/components/theme-provider';
+import { UI_LAYERS } from '@/lib/map-config';
+
+// OpenLayers touches `window` at import time, so the map must be client-only.
+const MapView = dynamic(() => import('@/components/map/map-view').then((m) => m.MapView), {
+  ssr: false,
+});
+
+const DEFAULT_VISIBILITY = Object.fromEntries(UI_LAYERS.map((l) => [l.key, l.defaultOn]));
+
+export default function Page() {
+  const { theme, toggle } = useTheme();
+  const mapRef = useRef<MapHandle>(null);
+
+  const [zoom, setZoom] = useState(11);
+  const [loading, setLoading] = useState(true);
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [visibility, setVisibility] = useState<Record<string, boolean>>(DEFAULT_VISIBILITY);
+  const [hits, setHits] = useState<FeatureHit[] | null>(null);
+  const [clickCoord, setClickCoord] = useState<[number, number] | null>(null);
+  const [locationNote, setLocationNote] = useState<string | null>(null);
+  const [addressResidents, setAddressResidents] = useState<ResidentResult[] | null>(null);
+  const [residentsLoading, setResidentsLoading] = useState(false);
+  // Guards against a slow lookup for a previously picked address landing after
+  // the user has already picked another one.
+  const residentsReq = useRef(0);
+
+  const handleToggleLayer = useCallback((key: string, value: boolean) => {
+    setVisibility((prev) => ({ ...prev, [key]: value }));
+    mapRef.current?.setLayerVisible(key, value);
+  }, []);
+
+  /** Drop any address resident list, discarding a lookup still in flight. */
+  const clearResidents = useCallback(() => {
+    residentsReq.current++;
+    setAddressResidents(null);
+    setResidentsLoading(false);
+  }, []);
+
+  const handleFeatureClick = useCallback(
+    (newHits: FeatureHit[], coord: [number, number]) => {
+      setHits(newHits.length ? newHits : null);
+      setClickCoord(coord);
+      setLocationNote(null);
+      clearResidents();
+      mapRef.current?.clearHighlight();
+    },
+    [clearResidents],
+  );
+
+  const handlePickIsland = useCallback(
+    (island: IslandResult) => {
+      mapRef.current?.flyTo(island.lon, island.lat, 14);
+      mapRef.current?.highlight(island.lon, island.lat, 14);
+      clearResidents();
+      setMobileSearchOpen(false);
+    },
+    [clearResidents],
+  );
+
+  const handlePickAddress = useCallback(async (address: AddressResult) => {
+    mapRef.current?.highlight(address.lon, address.lat, 18);
+    setHits([
+      {
+        layer: 'addresses',
+        properties: { hname: address.hname, IslandName: address.island, Atoll: address.atoll },
+      },
+    ]);
+    setClickCoord([address.lon, address.lat]);
+    setLocationNote(null);
+    setMobileSearchOpen(false);
+
+    // Then list everyone registered at that address.
+    const req = ++residentsReq.current;
+    setAddressResidents(null);
+    setResidentsLoading(true);
+    const params = new URLSearchParams({ hname: address.hname });
+    if (address.island) params.set('island', address.island);
+    if (address.atoll) params.set('atoll', address.atoll);
+
+    try {
+      const data = await fetch(`/api/address-residents?${params}`).then((r) => r.json());
+      if (req !== residentsReq.current) return;
+      setAddressResidents(data.results ?? []);
+    } catch {
+      if (req !== residentsReq.current) return;
+      setAddressResidents([]);
+    } finally {
+      if (req === residentsReq.current) setResidentsLoading(false);
+    }
+  }, []);
+
+  const handlePickResident = useCallback(
+    async (resident: ResidentResult) => {
+      // Surface the record immediately, including the ID number.
+      setHits([{ layer: 'resident', properties: { ...resident } }]);
+      setClickCoord(null);
+      setLocationNote(null);
+      clearResidents();
+      setMobileSearchOpen(false);
+
+      // Resolve the permanent address to a point and fly/highlight it. The record
+      // itself has no geometry, so this is a best-effort lookup in the address
+      // layer, falling back to the island.
+      const params = new URLSearchParams();
+      if (resident.permanent_address) params.set('hname', resident.permanent_address);
+      if (resident.island) params.set('island', resident.island);
+
+      try {
+        const geo = await fetch(`/api/geocode-address?${params}`).then((r) => r.json());
+        if (geo.found) {
+          mapRef.current?.highlight(geo.lon, geo.lat, geo.match === 'island' ? 15 : 18);
+          setClickCoord([geo.lon, geo.lat]);
+          setLocationNote(
+            geo.match === 'exact'
+              ? 'Location matched to address'
+              : geo.match === 'fuzzy'
+                ? 'Approximate — nearest matching house name'
+                : 'Approximate — island location',
+          );
+        } else {
+          setLocationNote('No map location found for this address');
+        }
+      } catch {
+        setLocationNote('Could not resolve address location');
+      }
+    },
+    [clearResidents],
+  );
+
+  const handleCloseSheet = useCallback(() => {
+    setHits(null);
+    setLocationNote(null);
+    clearResidents();
+    mapRef.current?.clearHighlight();
+  }, [clearResidents]);
+
+  const header = useMemo(
+    () => (
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-center gap-3 p-3">
+        <div className="pointer-events-auto">
+          <Logo />
+        </div>
+        <div className="pointer-events-auto mx-auto hidden w-full max-w-md md:block">
+          <SearchBox
+            onPickIsland={handlePickIsland}
+            onPickResident={handlePickResident}
+            onPickAddress={handlePickAddress}
+          />
+        </div>
+        <div className="pointer-events-auto ml-auto">
+          <HeaderActions
+            theme={theme}
+            onToggleTheme={toggle}
+            onToggleLayers={() => setLayersOpen((v) => !v)}
+            onOpenMobileSearch={() => setMobileSearchOpen(true)}
+          />
+        </div>
+      </header>
+    ),
+    [theme, toggle, handlePickIsland, handlePickResident, handlePickAddress],
+  );
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="relative h-dvh w-full overflow-hidden">
+      <MapView
+        ref={mapRef}
+        theme={theme}
+        onZoomChange={setZoom}
+        onLoadingChange={setLoading}
+        onFeatureClick={handleFeatureClick}
+      />
+
+      {header}
+
+      <LayerPanel
+        open={layersOpen}
+        onClose={() => setLayersOpen(false)}
+        visibility={visibility}
+        onToggle={handleToggleLayer}
+      />
+
+      <ZoomControls
+        zoom={zoom}
+        onZoomIn={() => mapRef.current?.zoomIn()}
+        onZoomOut={() => mapRef.current?.zoomOut()}
+      />
+
+      <InfoBar zoom={zoom} />
+
+      <FeatureSheet
+        hits={hits}
+        coordinate={clickCoord}
+        locationNote={locationNote}
+        residents={addressResidents}
+        residentsLoading={residentsLoading}
+        onClose={handleCloseSheet}
+      />
+
+      <LoadingOverlay visible={loading} />
+
+      {/* Mobile full-screen search */}
+      {mobileSearchOpen && (
+        <div className="absolute inset-0 z-50 flex flex-col bg-background/95 p-3 backdrop-blur-md md:hidden">
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <SearchBox
+                autoFocus
+                onPickIsland={handlePickIsland}
+                onPickResident={handlePickResident}
+                onPickAddress={handlePickAddress}
+              />
+            </div>
+            <button
+              onClick={() => setMobileSearchOpen(false)}
+              className="glass flex size-9 items-center justify-center rounded-full"
+              aria-label="Close search"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <X className="size-4" />
+            </button>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      )}
+    </main>
   );
 }
