@@ -13,13 +13,24 @@ type AnyPool = { kind: 'mysql'; pool: MySqlPool } | { kind: 'postgres'; pool: Pg
 
 // Next dev-mode hot reload re-evaluates modules; without this the pool would be
 // recreated on every edit until the database runs out of connections.
-const globalForDb = globalThis as unknown as { __mdvPool?: AnyPool };
+const globalForDb = globalThis as unknown as { __mdvPool?: AnyPool; __mdvPoolKey?: string };
 
 async function getPool(): Promise<AnyPool> {
-  if (globalForDb.__mdvPool) return globalForDb.__mdvPool;
-
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('DATABASE_URL is not set. Copy .env.example to .env.local.');
+
+  // Editing .env.local re-evaluates this module, so `dialect` tracks the new
+  // value — but the cached pool would still point at the previous database, and
+  // the SQL built for one dialect then gets sent to the other. Key the cache on
+  // the target so a switch discards the old pool instead of silently reusing it.
+  const key = `${dialect}:${url}`;
+  if (globalForDb.__mdvPool && globalForDb.__mdvPoolKey === key) return globalForDb.__mdvPool;
+
+  const stale = globalForDb.__mdvPool;
+  if (stale) {
+    globalForDb.__mdvPool = undefined;
+    void Promise.resolve(stale.pool.end()).catch(() => {});
+  }
 
   if (dialect === 'postgres') {
     const { Pool } = await import('pg');
@@ -40,6 +51,7 @@ async function getPool(): Promise<AnyPool> {
       }),
     };
   }
+  globalForDb.__mdvPoolKey = key;
   return globalForDb.__mdvPool;
 }
 
