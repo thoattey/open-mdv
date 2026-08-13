@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="Raajje Atlas">
+  <title>Raajje Atlas</title>
+  <!-- Reef ring: four islet arcs broken by channels (kandu). -->
+  <circle
+    cx="16" cy="16" r="11"
+    stroke="#007aff" stroke-width="3" stroke-linecap="round"
+    stroke-dasharray="16 4 10 5 14 4 12.115 4"
+    transform="rotate(-18 16 16)"
+  />
+  <!-- Lagoon. -->
+  <circle cx="16" cy="16" r="3.75" fill="#007aff" />
+</svg>

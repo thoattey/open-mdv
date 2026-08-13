@@ -1,4 +1,4 @@
--- MDV Map Viewer — MySQL 8.0+ schema
+-- Raajje Atlas — MySQL 8.0+ schema
 --
 -- Geometry is stored with SRID 0 in (longitude, latitude) order rather than
 -- SRID 4326. MySQL treats 4326 as a geographic CRS with latitude-first axis

@@ -1,5 +1,5 @@
 {
-  "name": "rajje-app-clone",
+  "name": "raajje-atlas",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -18,6 +18,8 @@
     "db:import-residents": "tsx scripts/db.ts import-residents"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.3",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-query-devtools": "^5.101.4",
     "class-variance-authority": "^0.7.1",

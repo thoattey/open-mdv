@@ -1,7 +1,6 @@
 'use client';
 
-import { Map as MapIcon } from 'lucide-react';
-
+import { LogoMark } from '@/components/brand/logo-mark';
 import { cn } from '@/lib/utils';
 
 /** Full-screen boot overlay shown until the static layers finish loading. */
@@ -17,12 +16,12 @@ export function LoadingOverlay({ visible }: { visible: boolean }) {
         <div className="relative size-14">
           <div
             className="absolute inset-0 rounded-full border-[3px] border-primary/20 border-t-primary"
-            style={{ animation: 'mdv-spin 0.9s linear infinite' }}
+            style={{ animation: 'atlas-spin 0.9s linear infinite' }}
           />
-          <MapIcon className="absolute inset-0 m-auto size-6 text-primary" />
+          <LogoMark className="absolute inset-0 m-auto size-6 text-primary" />
         </div>
         <div className="text-center">
-          <h3 className="text-base font-semibold">Loading Map</h3>
+          <h3 className="text-base font-semibold">Raajje Atlas</h3>
           <p className="mt-1 text-sm text-muted-foreground">Preparing map data…</p>
         </div>
       </div>

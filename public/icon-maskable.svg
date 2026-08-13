@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" fill="#007aff" />
+  <!-- Mark kept inside the 80% safe area so Android can mask it to any shape. -->
+  <circle
+    cx="256" cy="256" r="118"
+    stroke="#fff" stroke-width="34" stroke-linecap="round"
+    stroke-dasharray="171.6 42.9 107.3 53.6 150.2 42.9 118.4 42.9"
+    transform="rotate(-18 256 256)"
+  />
+  <circle cx="256" cy="256" r="40" fill="#fff" />
+</svg>

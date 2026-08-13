@@ -1,4 +1,4 @@
--- MDV Map Viewer — PostgreSQL + PostGIS schema
+-- Raajje Atlas — PostgreSQL + PostGIS schema
 --
 -- Mirror of db/schema.mysql.sql. Unlike MySQL, PostGIS uses longitude-first
 -- axis order for SRID 4326, so geometries are stored as true 4326 and bbox
@@ -174,3 +174,28 @@ CREATE INDEX IF NOT EXISTS ix_residents_address ON residents (permanent_address)
 CREATE INDEX IF NOT EXISTS ix_residents_island ON residents (island);
 CREATE INDEX IF NOT EXISTS ix_residents_search ON residents
   USING GIN (to_tsvector('simple', full_name || ' ' || coalesce(permanent_address, '') || ' ' || coalesce(island, '')));
+
+-- Row Level Security
+--
+-- Required when this schema is hosted on Supabase: every table in `public` is
+-- reachable through the Data API with the browser-visible publishable key, and
+-- Supabase's default grants already give `anon` full DML on new tables. Enabling
+-- RLS with no policies denies that role everything.
+--
+-- The app itself is unaffected: `src/lib/db` connects as the table owner over
+-- plain Postgres, and owners are exempt from RLS unless FORCE is set. On a plain
+-- local Postgres these statements are inert for the same reason.
+--
+-- To expose a table read-only to the browser later, add e.g.
+--   CREATE POLICY read_all ON island_names FOR SELECT TO anon USING (true);
+-- Do not do this for `residents`.
+ALTER TABLE atoll_boundaries      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE administrative_atolls ENABLE ROW LEVEL SECURITY;
+ALTER TABLE airports              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE atoll_capitals        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE island_names          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE parcels               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE house_parcels         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE plot_lines            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE addresses             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE residents             ENABLE ROW LEVEL SECURITY;

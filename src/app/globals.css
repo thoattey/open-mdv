@@ -49,7 +49,7 @@
 }
 
 :root {
-  /* iOS light theme, ported from the original MDV viewer. */
+  /* iOS light theme, ported from the original viewer. */
   --background: oklch(0.968 0.002 265);
   --foreground: oklch(0.16 0 0);
   --card: oklch(1 0 0);
@@ -151,7 +151,7 @@
   border: 1px solid color-mix(in oklch, var(--border) 100%, transparent);
 }
 
-@keyframes mdv-spin {
+@keyframes atlas-spin {
   to {
     transform: rotate(360deg);
   }

@@ -1,6 +1,7 @@
-# MDV Map Viewer — clone
+# Raajje Atlas
 
-A faithful rebuild of the cadastral/address map at `raajje.app/map/`, on a modern
+An open cadastral and address atlas of the Maldives — a faithful rebuild of the
+map at `raajje.app/map/`, on a modern
 stack: **Next.js 16**, **TanStack Query**, **shadcn/ui + Tailwind v4**, and a
 spatial database (**MySQL 8** by default, **PostgreSQL + PostGIS** optional).
 
@@ -88,6 +89,50 @@ DATABASE_URL=postgresql://mdv:mdv@127.0.0.1:5432/mdv_map
 
 PostgreSQL requires the **PostGIS** extension (the `postgis/postgis` Docker image
 ships it; the migration runs `CREATE EXTENSION IF NOT EXISTS postgis`).
+
+## Hosting the database on Supabase
+
+Supabase is a managed PostgreSQL, so it reuses the Postgres path above — no
+application code changes, no `pg_dump`. The importer rebuilds the tables from
+`_scrape/data/*.ndjson` directly against the hosted database.
+
+1. **Enable PostGIS.** Dashboard → Database → Extensions → enable `postgis`.
+   It installs into the `extensions` schema, which is already on the default
+   `search_path` for the `postgres` role.
+2. **Set the connection string.** Dashboard → Connect → **Session pooler**
+   (port 5432). The direct `db.<ref>.supabase.co` host is IPv6-only, and the
+   transaction pooler on 6543 is meant for short serverless queries rather than
+   a long bulk import.
+
+   ```env
+   DB_DIALECT=postgres
+   DATABASE_URL=postgresql://postgres.<ref>:<db-password>@aws-1-<region>.pooler.supabase.com:5432/postgres?sslmode=verify-full
+   ```
+
+   If the TLS chain fails to validate, download the project CA from the same
+   dialog and append `&sslrootcert=./supabase-ca.crt`.
+3. **Migrate and load.**
+
+   ```bash
+   npm run db:migrate && npm run db:import && npm run db:import-residents
+   ```
+
+   ~476k rows over the wire; expect this to take a while. Both importers upsert
+   on the primary key, so an interrupted run can simply be re-run.
+4. **Check it.** `npm run db:stats` should report the same counts as local.
+
+### Row Level Security
+
+`db/schema.postgres.sql` enables RLS on all ten tables and creates no policies.
+That matters on Supabase specifically: every table in `public` is reachable
+through the Data API using the browser-visible `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+and Supabase's default grants hand the `anon` role full DML on new tables. RLS
+with no policies denies `anon` everything.
+
+This does not affect the app, which queries as the table owner over `pg` in
+`src/lib/db` and is exempt from RLS. If you later move a layer to `supabase-js`
+in the browser, add an explicit read-only policy for just that table — never for
+`residents`.
 
 ## How the spatial layer works
 

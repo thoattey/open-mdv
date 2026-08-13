@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Database CLI for the MDV Map Viewer clone.
+ * Database CLI for Raajje Atlas.
  *
  *   npm run db:migrate           apply the schema for the configured dialect
  *   npm run db:import            load _scrape/data/*.ndjson into the tables

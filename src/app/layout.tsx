@@ -13,9 +13,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'MDV Map Viewer',
+  title: 'Raajje Atlas',
+  applicationName: 'Raajje Atlas',
   description: 'Cadastral and address map of the Maldives — parcels, plots, islands and atolls.',
   manifest: '/manifest.json',
+  appleWebApp: { capable: true, title: 'Raajje Atlas', statusBarStyle: 'black-translucent' },
 };
 
 export const viewport: Viewport = {

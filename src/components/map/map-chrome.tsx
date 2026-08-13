@@ -1,7 +1,8 @@
 'use client';
 
-import { ChevronLeft, Layers, Minus, Moon, Plus, Search, Sun } from 'lucide-react';
+import { Layers, Minus, Moon, Plus, Search, Sun } from 'lucide-react';
 
+import { LogoMark } from '@/components/brand/logo-mark';
 import { cn } from '@/lib/utils';
 
 export function IconButton({
@@ -53,11 +54,11 @@ export function HeaderActions({
 export function Logo() {
   return (
     <div className="flex items-center gap-2">
-      {/* <IconButton aria-label="Home" className="hidden sm:flex">
-        <ChevronLeft className="size-4" />
-      </IconButton> */}
-      <div className="glass flex h-9 items-center gap-2 rounded-full px-4 shadow-sm">
-        <span className="text-sm font-bold tracking-tight">Open <span className='text-primary'>MDV</span></span>
+      <div className="glass flex h-9 items-center gap-2 rounded-full pl-3 pr-4 shadow-sm">
+        <LogoMark className="size-[18px] shrink-0 text-primary" />
+        <span className="text-sm font-bold tracking-tight">
+          Raajje <span className="text-primary">Atlas</span>
+        </span>
       </div>
     </div>
   );
