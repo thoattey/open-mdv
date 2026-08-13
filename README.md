@@ -109,8 +109,8 @@ application code changes, no `pg_dump`. The importer rebuilds the tables from
    DATABASE_URL=postgresql://postgres.<ref>:<db-password>@aws-1-<region>.pooler.supabase.com:5432/postgres?sslmode=verify-full
    ```
 
-   If the TLS chain fails to validate, download the project CA from the same
-   dialog and append `&sslrootcert=./supabase-ca.crt`.
+   If the TLS chain fails to validate, append `&sslrootcert=./db/prod-ca-2021.crt`
+   — the Supabase root CA is checked in at that path.
 3. **Migrate and load.**
 
    ```bash
