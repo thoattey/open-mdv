@@ -169,7 +169,12 @@ CREATE TABLE IF NOT EXISTS residents (
   permanent_address VARCHAR(255),
   island            VARCHAR(255),
   atoll             VARCHAR(64),
+  -- Set from /admin (the data-control console). Every public read filters it
+  -- out, so a censored resident disappears from search, the grid and the map's
+  -- address sheet without the row being deleted.
+  is_censored       TINYINT(1) NOT NULL DEFAULT 0,
   KEY ix_residents_name (full_name),
+  KEY ix_residents_censored (is_censored),
   KEY ix_residents_address (permanent_address),
   KEY ix_residents_island (island),
   FULLTEXT KEY ft_residents (full_name, permanent_address, island)

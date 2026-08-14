@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Home, Loader2, MapPinned, Search, User, X, type LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { useDebounced } from '@/lib/use-debounced';
 import { cn } from '@/lib/utils';
 
 export interface ResidentResult {
@@ -57,15 +58,6 @@ async function runSearch(q: string): Promise<SearchResponse> {
     islands: islandsRes.results ?? [],
     addresses: addressesRes.results ?? [],
   };
-}
-
-function useDebounced<T>(value: T, delay: number): T {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setV(value), delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
-  return v;
 }
 
 interface SearchBoxProps {

@@ -1,9 +1,13 @@
 'use client';
 
-import { Layers, Minus, Moon, Plus, Search, Sun } from 'lucide-react';
+import { Layers, Minus, Moon, Plus, Search, Sun, TerminalSquare } from 'lucide-react';
+import Link from 'next/link';
 
 import { LogoMark } from '@/components/brand/logo-mark';
 import { cn } from '@/lib/utils';
+
+const ICON_BUTTON_CLASS =
+  'glass flex size-9 items-center justify-center rounded-full text-foreground shadow-sm transition hover:bg-accent active:scale-95';
 
 export function IconButton({
   children,
@@ -11,13 +15,7 @@ export function IconButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button
-      className={cn(
-        'glass flex size-9 items-center justify-center rounded-full text-foreground shadow-sm transition hover:bg-accent active:scale-95',
-        className,
-      )}
-      {...props}
-    >
+    <button className={cn(ICON_BUTTON_CLASS, className)} {...props}>
       {children}
     </button>
   );
@@ -41,6 +39,9 @@ export function HeaderActions({
       <IconButton className="md:hidden" onClick={onOpenMobileSearch} aria-label="Search">
         <Search className="size-4" />
       </IconButton>
+      <Link href="/grid" className={ICON_BUTTON_CLASS} aria-label="Open the data console" title="Data console">
+        <TerminalSquare className="size-4" />
+      </Link>
       <IconButton onClick={onToggleLayers} aria-label="Layers">
         <Layers className="size-4" />
       </IconButton>

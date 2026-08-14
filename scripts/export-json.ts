@@ -17,6 +17,7 @@ import path from 'node:path';
 
 import { config } from 'dotenv';
 
+import { VISIBLE_RESIDENT } from '../src/lib/censor';
 import { resolveDialect, type Dialect } from '../src/lib/dialect';
 
 config({ path: '.env.local', quiet: true });
@@ -65,8 +66,11 @@ async function exportResidents() {
   }
 
   let rows: Record<string, unknown>[] = [];
+  // The dump is a published artifact, so it honours the same censorship gate the
+  // API applies — see src/lib/censor.ts.
   const sql =
-    'SELECT id_no, full_name, dob, gender, permanent_address, island, atoll FROM residents ORDER BY id_no';
+    'SELECT id_no, full_name, dob, gender, permanent_address, island, atoll FROM residents' +
+    ` WHERE ${VISIBLE_RESIDENT} ORDER BY id_no`;
 
   if (dialect === 'postgres') {
     const { Pool } = await import('pg');

@@ -87,6 +87,9 @@ function splitStatements(sql: string): string[] {
 async function migrate(db: Runner) {
   const file = path.resolve(process.cwd(), `db/schema.${dialect}.sql`);
   const statements = splitStatements(await readFile(file, 'utf8'));
+  // Before the schema, not after: the schema's own `CREATE INDEX IF NOT EXISTS`
+  // over a late-added column can only run once that column exists.
+  await backfillColumns(db);
   console.log(`[migrate] ${dialect}: applying ${statements.length} statements`);
   for (const stmt of statements) {
     try {
@@ -97,6 +100,44 @@ async function migrate(db: Runner) {
     }
   }
   console.log('[migrate] done');
+}
+
+/**
+ * `CREATE TABLE IF NOT EXISTS` is a no-op on a database that predates a column,
+ * so columns added after the first release are applied here instead. On a fresh
+ * database the table does not exist yet and every entry is skipped — the schema
+ * that follows already declares the column.
+ *
+ * Postgres has `ADD COLUMN IF NOT EXISTS`; MySQL 8 does not, and the usual
+ * workaround (a stored procedure) cannot survive `splitStatements`, which cuts
+ * on every `;`. So both dialects go through information_schema first.
+ */
+const ADDED_COLUMNS: { table: string; column: string; ddl: Record<Dialect, string> }[] = [
+  {
+    table: 'residents',
+    column: 'is_censored',
+    ddl: {
+      postgres: 'ALTER TABLE residents ADD COLUMN is_censored BOOLEAN NOT NULL DEFAULT FALSE',
+      mysql: 'ALTER TABLE residents ADD COLUMN is_censored TINYINT(1) NOT NULL DEFAULT 0',
+    },
+  },
+];
+
+async function backfillColumns(db: Runner) {
+  const schema = dialect === 'postgres' ? 'current_schema()' : 'DATABASE()';
+  for (const { table, column, ddl } of ADDED_COLUMNS) {
+    // MySQL labels information_schema results COLUMN_NAME, Postgres column_name.
+    const columns = (await db.exec(
+      `SELECT column_name FROM information_schema.columns
+        WHERE table_name = ? AND table_schema = ${schema}`,
+      [table],
+    )) as { column_name?: string; COLUMN_NAME?: string }[];
+    // No table yet: the schema about to run declares the column itself.
+    if (!columns.length) continue;
+    if (columns.some((c) => (c.column_name ?? c.COLUMN_NAME) === column)) continue;
+    console.log(`[migrate] adding ${table}.${column}`);
+    await db.exec(ddl[dialect]);
+  }
 }
 
 async function reset(db: Runner) {

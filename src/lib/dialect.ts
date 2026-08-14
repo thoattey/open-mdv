@@ -67,6 +67,79 @@ export function likeOperator(dialect: Dialect): string {
   return dialect === 'postgres' ? 'ILIKE' : 'LIKE';
 }
 
+/**
+ * Case-insensitive equality between two SQL expressions.
+ *
+ * `likeOperator` covers the case where one side is a user-supplied pattern, but
+ * ILIKE against another *column* is unindexable and forces a nested loop. Where
+ * both sides are columns — joining free-text addresses to house names — this
+ * gives the planner a plain equality it can hash-join instead.
+ */
+export function ciEquals(dialect: Dialect, left: string, right: string): string {
+  return `${ciKey(dialect, left)} = ${ciKey(dialect, right)}`;
+}
+
+/**
+ * Case-folded form of an expression, for use as a join or GROUP BY key. MySQL's
+ * default collation already folds case, so folding again would only cost work.
+ */
+export function ciKey(dialect: Dialect, expr: string): string {
+  return dialect === 'postgres' ? `lower(${expr})` : expr;
+}
+
+/**
+ * SQL expression yielding a sortable `YYYYMMDD` integer from a stored `dob`, or
+ * NULL when the value isn't a date we recognise. Mirrors the parsing rules in
+ * `src/lib/dob.ts`: "M/D/YY" (two-digit years are 19xx), "M/D/YYYY", or ISO
+ * "YYYY-MM-DD".
+ *
+ * Full precision rather than just the year, so an age filter agrees exactly with
+ * the age the UI computes for the same row — comparing "born on or before this
+ * date" needs the day, not only the year.
+ *
+ * The expression consumes no placeholders, so it is safe to embed anywhere. It
+ * cannot use an index: every age filter is a scan of the residents table.
+ */
+export function birthKeyExpr(dialect: Dialect, column: string): string {
+  const SLASH_SHORT = '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2}$';
+  const SLASH_LONG = '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}$';
+  const ISO = '^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$';
+
+  if (dialect === 'postgres') {
+    const part = (sep: string, n: number) => `split_part(${column}, '${sep}', ${n})::int`;
+    const ymd = (y: string, m: string, d: string) => `${y} * 10000 + ${m} * 100 + ${d}`;
+    return `CASE
+              WHEN ${column} ~ '${ISO}'
+                THEN ${ymd(part('-', 1), part('-', 2), part('-', 3))}
+              WHEN ${column} ~ '${SLASH_SHORT}'
+                THEN ${ymd(`(1900 + ${part('/', 3)})`, part('/', 1), part('/', 2))}
+              WHEN ${column} ~ '${SLASH_LONG}'
+                THEN ${ymd(part('/', 3), part('/', 1), part('/', 2))}
+            END`;
+  }
+
+  // MySQL has no split_part; nesting SUBSTRING_INDEX both ways picks out the
+  // middle field.
+  const part = (sep: string, n: number) => {
+    const expr =
+      n === 1
+        ? `SUBSTRING_INDEX(${column}, '${sep}', 1)`
+        : n === 2
+          ? `SUBSTRING_INDEX(SUBSTRING_INDEX(${column}, '${sep}', 2), '${sep}', -1)`
+          : `SUBSTRING_INDEX(${column}, '${sep}', -1)`;
+    return `CAST(${expr} AS SIGNED)`;
+  };
+  const ymd = (y: string, m: string, d: string) => `${y} * 10000 + ${m} * 100 + ${d}`;
+  return `CASE
+            WHEN ${column} REGEXP '${ISO}'
+              THEN ${ymd(part('-', 1), part('-', 2), part('-', 3))}
+            WHEN ${column} REGEXP '${SLASH_SHORT}'
+              THEN ${ymd(`(1900 + ${part('/', 3)})`, part('/', 1), part('/', 2))}
+            WHEN ${column} REGEXP '${SLASH_LONG}'
+              THEN ${ymd(part('/', 3), part('/', 1), part('/', 2))}
+          END`;
+}
+
 /** Upsert clause for a batch INSERT, given the columns to overwrite. */
 export function upsertClause(dialect: Dialect, conflictKey: string, columns: string[]): string {
   if (dialect === 'postgres') {

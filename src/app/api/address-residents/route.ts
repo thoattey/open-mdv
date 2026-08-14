@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { VISIBLE_RESIDENT } from '@/lib/censor';
 import { query, dialect, likeOperator } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
   const like = likeOperator(dialect);
   // LIKE with no wildcards is an equality test that ignores case on both
   // backends (ILIKE on Postgres, the default collation on MySQL).
-  const where = [`permanent_address ${like} ?`];
+  const where = [VISIBLE_RESIDENT, `permanent_address ${like} ?`];
   const params: string[] = [hname];
   if (island) {
     where.push(`island ${like} ?`);

@@ -167,9 +167,14 @@ CREATE TABLE IF NOT EXISTS residents (
   gender            CHAR(1),
   permanent_address TEXT,
   island            TEXT,
-  atoll             TEXT
+  atoll             TEXT,
+  -- Set from /admin (the data-control console). Every public read filters it
+  -- out, so a censored resident disappears from search, the grid and the map's
+  -- address sheet without the row being deleted.
+  is_censored       BOOLEAN NOT NULL DEFAULT FALSE
 );
 CREATE INDEX IF NOT EXISTS ix_residents_name ON residents (full_name);
+CREATE INDEX IF NOT EXISTS ix_residents_censored ON residents (is_censored);
 CREATE INDEX IF NOT EXISTS ix_residents_address ON residents (permanent_address);
 CREATE INDEX IF NOT EXISTS ix_residents_island ON residents (island);
 CREATE INDEX IF NOT EXISTS ix_residents_search ON residents

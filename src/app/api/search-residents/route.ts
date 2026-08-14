@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { VISIBLE_RESIDENT } from '@/lib/censor';
 import { query, dialect, likeOperator } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -70,10 +71,11 @@ export async function GET(request: Request) {
                 ELSE 3
               END AS match_rank
          FROM residents
-        WHERE full_name ${like} ?
-           OR id_no ${like} ?
-           OR permanent_address ${like} ?
-           OR island ${like} ?
+        WHERE ${VISIBLE_RESIDENT}
+          AND (full_name ${like} ?
+            OR id_no ${like} ?
+            OR permanent_address ${like} ?
+            OR island ${like} ?)
         ORDER BY match_rank, full_name
         LIMIT ${RESULT_LIMIT}`,
       [prefix, prefix, prefix, anywhere, anywhere, anywhere, anywhere],

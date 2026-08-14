@@ -77,6 +77,43 @@ npm run db:stats        # row counts per table
 npm run dev             # http://localhost:3000
 ```
 
+## Data control console (`/admin`)
+
+`/admin` is the control centre for the resident register: search it, then flip a
+record's switch to **censor** it. A censored resident is withheld from every
+public read — `/api/search-residents`, `/api/address-residents`, both `/grid`
+feeds, the atoll facet counts and `npm run export:json` — while the row itself
+stays in the table, so head-counts stay keyed and re-seeding never resurrects a
+record that was pulled. The flag is the `residents.is_censored` column; the gate
+is one shared SQL fragment, `VISIBLE_RESIDENT` in `src/lib/censor.ts`.
+
+Rows can be flipped one at a time from the switch in the last column, or in bulk
+by ticking rows and using **censor selected** / **release selected**.
+
+There is no user table — one operator, configured in `.env.local`:
+
+```env
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=<your passphrase>
+ADMIN_SESSION_SECRET=<32 random bytes>
+```
+
+Generate the secret with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
+Sign-in exchanges those credentials for an HMAC-signed, HttpOnly session cookie
+that lasts 8 hours; rotating `ADMIN_SESSION_SECRET` invalidates every open
+session at once. Until all three variables are set, `/admin` refuses to sign
+anyone in and says which are missing. Every `/api/admin/*` request re-checks the
+session, so the console UI is a convenience rather than the control itself.
+
+If you are upgrading a database created before this feature, `npm run db:migrate`
+adds the `is_censored` column in place — it is safe to re-run and touches nothing
+else.
+
 ## Switching to PostgreSQL
 
 Set two variables in `.env.local` and re-run the setup — the schema, importer,
@@ -170,6 +207,9 @@ db/
   schema.postgres.sql PostGIS schema
 src/
   lib/                dialect, layers registry, geojson assembly, map config/styles
-  app/api/            layers, search-residents, search-islands
+                      censor gate, admin session
+  app/api/            layers, search-residents, search-islands, grid, admin
+  app/grid/           terminal console over the two registers
+  app/admin/          data control console (censor switches)
   components/map/      MapView (OpenLayers) + shadcn chrome
 ```
