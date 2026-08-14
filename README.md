@@ -147,7 +147,12 @@ application code changes, no `pg_dump`. The importer rebuilds the tables from
    ```
 
    If the TLS chain fails to validate, append `&sslrootcert=./db/prod-ca-2021.crt`
-   — the Supabase root CA is checked in at that path.
+   — the Supabase root CA is checked in at that path. The app reads that
+   parameter itself and substitutes the CA it has compiled in, so the relative
+   path stays correct no matter what directory the process runs from. Leaving it
+   to `pg` would not: `pg` resolves it against the process CWD with
+   `readFileSync`, and a cert named only inside a connection string is invisible
+   to Next's build-time file tracing, so it never reaches a serverless bundle.
 3. **Migrate and load.**
 
    ```bash
@@ -170,6 +175,27 @@ This does not affect the app, which queries as the table owner over `pg` in
 `src/lib/db` and is exempt from RLS. If you later move a layer to `supabase-js`
 in the browser, add an explicit read-only policy for just that table — never for
 `residents`.
+
+### Deploying to Vercel
+
+Nothing in `.env.local` is uploaded with a deploy — Vercel only knows the
+variables you set under Project → Settings → Environment Variables. Set every
+one of these for the **Production** environment (and Preview, if you use it):
+
+| Variable | Note |
+| --- | --- |
+| `DB_DIALECT` | Must be `postgres`. **Omitting it does not fail loudly** — it defaults to `mysql`, and the app then sends MySQL syntax to Postgres. |
+| `DATABASE_URL` | Session pooler string, port 5432. |
+| `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET` | `/admin` refuses every sign-in until all three are set. |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Read at build time — changing them needs a redeploy, not just a restart. |
+
+Two things that make a misconfiguration hard to spot: `NEXT_PUBLIC_*` values are
+baked into the bundle during `next build`, so editing them in the dashboard does
+nothing until you redeploy; and the API routes catch their own errors and return
+`{ "error": "internal error" }` with a 500, which the map renders as simply
+nothing. When the deployed site comes up empty, read the failing request in the
+browser's Network tab and then the matching Vercel function log — the real cause
+is on the server, never in the page.
 
 ## How the spatial layer works
 
