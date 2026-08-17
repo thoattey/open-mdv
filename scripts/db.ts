@@ -19,6 +19,13 @@ import path from 'node:path';
 
 import { config } from 'dotenv';
 
+import { parseBusinessPayload } from '../src/lib/business-import';
+import {
+  businessUpsert,
+  ownerCount,
+  ownerUpsert,
+  staleOwnerDelete,
+} from '../src/lib/business-sql';
 import {
   geomFromGeoJson,
   resolveDialect,
@@ -141,7 +148,9 @@ async function backfillColumns(db: Runner) {
 }
 
 async function reset(db: Runner) {
-  const tables = [...LAYERS.map((l) => l.table), 'residents'];
+  // business_owners before businesses: the child carries the foreign key, and
+  // Postgres refuses to drop a referenced table without CASCADE.
+  const tables = [...LAYERS.map((l) => l.table), 'residents', 'business_owners', 'businesses'];
   console.log(`[reset] dropping ${tables.length} tables`);
   if (dialect === 'mysql') await db.exec('SET FOREIGN_KEY_CHECKS = 0');
   for (const t of tables) await db.exec(`DROP TABLE IF EXISTS ${t}`);
@@ -284,10 +293,57 @@ async function importResidents(db: Runner) {
   console.log(`\n[import-residents] DONE: ${count} residents imported in ${secs}s`);
 }
 
+/* -------------------------------------------------------------- businesses */
+
+/**
+ * Loads a business registry export from disk.
+ *
+ * The /admin import panel does the same work over HTTP and is the expected
+ * route for a one-off file; this exists for exports large enough that a few
+ * thousand round trips from a browser tab is the wrong shape, and for seeding a
+ * fresh database from a checked-out file without signing in.
+ */
+async function importBusinesses(db: Runner, args: string[]) {
+  const [file] = args;
+  if (!file) throw new Error('usage: tsx scripts/db.ts import-businesses <file.json>');
+
+  const raw = await readFile(path.resolve(process.cwd(), file), 'utf8');
+  const { records, skipped } = parseBusinessPayload(JSON.parse(raw));
+  console.log(
+    `[import-businesses] ${records.length} entities, ${ownerCount(records)} officers` +
+      (skipped.length ? `, ${skipped.length} skipped` : ''),
+  );
+  for (const issue of skipped.slice(0, 5)) {
+    console.warn(`[import-businesses]   skipped index ${issue.index}: ${issue.reason}`);
+  }
+
+  const BATCH = 250;
+  const importedAt = new Date();
+  const t0 = Date.now();
+  let done = 0;
+
+  for (let i = 0; i < records.length; i += BATCH) {
+    const chunk = records.slice(i, i + BATCH);
+    // Parents first — business_owners carries a foreign key onto businesses.
+    const insert = businessUpsert(dialect, chunk, importedAt);
+    if (insert) await db.exec(insert.sql, insert.params);
+    const prune = staleOwnerDelete(chunk);
+    if (prune) await db.exec(prune.sql, prune.params);
+    const owners = ownerUpsert(dialect, chunk);
+    if (owners) await db.exec(owners.sql, owners.params);
+
+    done += chunk.length;
+    process.stdout.write(`\r[import-businesses] ${done}/${records.length}`);
+  }
+
+  const secs = ((Date.now() - t0) / 1000).toFixed(1);
+  console.log(`\n[import-businesses] DONE: ${done} entities in ${secs}s`);
+}
+
 /* --------------------------------------------------------------------- stats */
 
 async function stats(db: Runner) {
-  const tables = [...LAYERS.map((l) => l.table), 'residents'];
+  const tables = [...LAYERS.map((l) => l.table), 'residents', 'businesses', 'business_owners'];
   console.log(`\n${'table'.padEnd(24)}rows`);
   console.log('-'.repeat(34));
   let total = 0;
@@ -324,11 +380,17 @@ async function main() {
       case 'import-residents':
         await importResidents(db);
         break;
+      case 'import-businesses':
+        await importBusinesses(db, rest);
+        break;
       case 'stats':
         await stats(db);
         break;
       default:
-        console.log('usage: tsx scripts/db.ts <migrate|reset|import [layer...]|import-residents|stats>');
+        console.log(
+          'usage: tsx scripts/db.ts ' +
+            '<migrate|reset|import [layer...]|import-residents|import-businesses <file>|stats>',
+        );
         process.exitCode = 1;
     }
   } finally {

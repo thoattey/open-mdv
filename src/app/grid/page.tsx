@@ -168,6 +168,9 @@ export default function GridPage() {
             <button className="mx-btn md:hidden" onClick={() => setRailOpen((v) => !v)}>
               filters{activeCount ? ` (${activeCount})` : ''}
             </button>
+            <Link className="mx-btn" href="/business">
+              business
+            </Link>
             <Link className="mx-btn" href="/admin">
               control
             </Link>

@@ -15,7 +15,8 @@
     "db:seed": "tsx scripts/seed-residents.ts",
     "export:json": "tsx scripts/export-json.ts",
     "db:setup": "npm run db:migrate && npm run db:import && npm run db:seed",
-    "db:import-residents": "tsx scripts/db.ts import-residents"
+    "db:import-residents": "tsx scripts/db.ts import-residents",
+    "db:import-businesses": "tsx scripts/db.ts import-businesses"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

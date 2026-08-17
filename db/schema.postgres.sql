@@ -180,6 +180,53 @@ CREATE INDEX IF NOT EXISTS ix_residents_island ON residents (island);
 CREATE INDEX IF NOT EXISTS ix_residents_search ON residents
   USING GIN (to_tsvector('simple', full_name || ' ' || coalesce(permanent_address, '') || ' ' || coalesce(island, '')));
 
+-- Registry of businesses, used by the /business console.
+--
+-- Unlike `residents`, this is public-record data: the national business registry
+-- publishes every row of it, including the officers listed in `business_owners`.
+-- Rows arrive through the batch importer in /admin (see
+-- src/lib/business-import.ts), never from a scraper on a schedule.
+--
+-- `id` is a natural key derived from the source record — the registration number
+-- when there is one, else the UPN, else a slug of the name — so re-importing an
+-- overlapping export updates rows in place instead of duplicating them.
+CREATE TABLE IF NOT EXISTS businesses (
+  id              TEXT PRIMARY KEY,
+  name            TEXT NOT NULL,
+  type            TEXT,
+  status          TEXT,
+  registration_no TEXT,
+  detail_url      TEXT,
+  upn             TEXT,
+  address         TEXT,
+  owner_entity    TEXT,
+  -- When this row was last written by an import, shown in the console readout.
+  imported_at     TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS ix_businesses_name ON businesses (name);
+CREATE INDEX IF NOT EXISTS ix_businesses_type ON businesses (type);
+CREATE INDEX IF NOT EXISTS ix_businesses_status ON businesses (status);
+CREATE INDEX IF NOT EXISTS ix_businesses_reg ON businesses (registration_no);
+CREATE INDEX IF NOT EXISTS ix_businesses_upn ON businesses (upn);
+CREATE INDEX IF NOT EXISTS ix_businesses_search ON businesses
+  USING GIN (to_tsvector('simple', name || ' ' || coalesce(address, '')));
+
+-- Officers of a business, in the order the source record listed them.
+--
+-- `ordinal` is part of the key rather than a bare sequence so an import is
+-- idempotent: the same source record always writes the same primary keys, and
+-- officers dropped from a later export are deleted by `ordinal >= <new count>`.
+CREATE TABLE IF NOT EXISTS business_owners (
+  id           TEXT PRIMARY KEY,
+  business_id  TEXT NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  ordinal      INTEGER NOT NULL,
+  owner_name   TEXT NOT NULL,
+  owner_role   TEXT,
+  appointed_on TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_business_owners_business ON business_owners (business_id);
+CREATE INDEX IF NOT EXISTS ix_business_owners_name ON business_owners (owner_name);
+
 -- Row Level Security
 --
 -- Required when this schema is hosted on Supabase: every table in `public` is
@@ -204,3 +251,5 @@ ALTER TABLE house_parcels         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE plot_lines            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE addresses             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE residents             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE businesses            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE business_owners       ENABLE ROW LEVEL SECURITY;

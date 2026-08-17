@@ -179,3 +179,51 @@ CREATE TABLE IF NOT EXISTS residents (
   KEY ix_residents_island (island),
   FULLTEXT KEY ft_residents (full_name, permanent_address, island)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Registry of businesses, used by the /business console.
+--
+-- Unlike `residents`, this is public-record data: the national business registry
+-- publishes every row of it, including the officers listed in `business_owners`.
+-- Rows arrive through the batch importer in /admin (see
+-- src/lib/business-import.ts), never from a scraper on a schedule.
+--
+-- `id` is a natural key derived from the source record — the registration number
+-- when there is one, else the UPN, else a slug of the name — so re-importing an
+-- overlapping export updates rows in place instead of duplicating them.
+CREATE TABLE IF NOT EXISTS businesses (
+  id              VARCHAR(128) PRIMARY KEY,
+  name            VARCHAR(255) NOT NULL,
+  type            VARCHAR(128),
+  status          VARCHAR(128),
+  registration_no VARCHAR(128),
+  detail_url      VARCHAR(1024),
+  upn             VARCHAR(128),
+  address         VARCHAR(512),
+  owner_entity    VARCHAR(255),
+  -- When this row was last written by an import, shown in the console readout.
+  imported_at     DATETIME NULL,
+  KEY ix_businesses_name (name),
+  KEY ix_businesses_type (type),
+  KEY ix_businesses_status (status),
+  KEY ix_businesses_reg (registration_no),
+  KEY ix_businesses_upn (upn),
+  FULLTEXT KEY ft_businesses (name, address)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Officers of a business, in the order the source record listed them.
+--
+-- `ordinal` is part of the key rather than a bare sequence so an import is
+-- idempotent: the same source record always writes the same primary keys, and
+-- officers dropped from a later export are deleted by `ordinal >= <new count>`.
+CREATE TABLE IF NOT EXISTS business_owners (
+  id           VARCHAR(160) PRIMARY KEY,
+  business_id  VARCHAR(128) NOT NULL,
+  ordinal      INT NOT NULL,
+  owner_name   VARCHAR(255) NOT NULL,
+  owner_role   VARCHAR(255),
+  appointed_on VARCHAR(32),
+  KEY ix_business_owners_business (business_id),
+  KEY ix_business_owners_name (owner_name),
+  CONSTRAINT fk_business_owners_business
+    FOREIGN KEY (business_id) REFERENCES businesses (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

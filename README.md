@@ -90,6 +90,8 @@ is one shared SQL fragment, `VISIBLE_RESIDENT` in `src/lib/censor.ts`.
 Rows can be flipped one at a time from the switch in the last column, or in bulk
 by ticking rows and using **censor selected** / **release selected**.
 
+The console's second tab, **import**, loads the business register — see below.
+
 There is no user table — one operator, configured in `.env.local`:
 
 ```env
@@ -113,6 +115,62 @@ session, so the console UI is a convenience rather than the control itself.
 If you are upgrading a database created before this feature, `npm run db:migrate`
 adds the `is_censored` column in place — it is safe to re-run and touches nothing
 else.
+
+## Business register (`/business`)
+
+`/business` is a third console over the national business registry: companies,
+sole proprietorships and partnerships, with the officers listed against each.
+Filter by name, registration number, UPN, address or officer name; entity type
+and registration status come through as chips built from whatever the table
+actually holds. Clicking a row opens a detail panel with the full officer list
+and a link to the source record.
+
+Unlike the resident directory this is public-record data, so there is no censor
+gate on it.
+
+### Importing
+
+Records are loaded as JSON, either from the **import** tab of `/admin` or from
+the CLI:
+
+```bash
+npm run db:import-businesses -- path/to/export.json
+```
+
+Both accept the same shape — a bare array, or an object wrapping one under
+`businesses`, `records` or `data`:
+
+```json
+[
+  {
+    "name": "AAABAAA TRAVELS Pvt Ltd",
+    "type": "Company",
+    "status": "Registered",
+    "registration_no": "C-0883/2017",
+    "detail_url": "https://business.egov.mv/BusinessRegistry/ViewDetails/149677",
+    "upn": "2017PV03901J",
+    "address": "M. MARINA BUILDING",
+    "owner_entity": "",
+    "owners": [{ "name": "ABDULLA SALIH", "role": "Managing Director", "date": "" }]
+  }
+]
+```
+
+Only `name` is required; every other field may be missing or blank. Records
+without one are skipped and reported rather than failing the batch.
+
+Imports are **idempotent**. Each row's primary key is derived from the record —
+the registration number when there is one, else the UPN, else a slug of the name
+— so re-running a file, or loading an export that overlaps an earlier one,
+updates rows in place instead of duplicating them. Officers are keyed by their
+position in the record, and any that a newer export drops are deleted.
+
+The `/admin` panel parses the file in the browser first, so a malformed export
+reports immediately, then uploads it in chunks of 250 with a progress readout.
+The CLI is the better route for very large exports.
+
+If you are upgrading a database created before this feature, `npm run db:migrate`
+adds the `businesses` and `business_owners` tables in place.
 
 ## Switching to PostgreSQL
 
@@ -233,9 +291,11 @@ db/
   schema.postgres.sql PostGIS schema
 src/
   lib/                dialect, layers registry, geojson assembly, map config/styles
-                      censor gate, admin session
-  app/api/            layers, search-residents, search-islands, grid, admin
+                      censor gate, admin session, business import/SQL
+  app/api/            layers, search-residents, search-islands, grid, business, admin
   app/grid/           terminal console over the two registers
-  app/admin/          data control console (censor switches)
+  app/business/       terminal console over the business register
+  app/admin/          data control console (censor switches, batch import)
+  components/console/ form primitives shared by the terminal consoles
   components/map/      MapView (OpenLayers) + shadcn chrome
 ```

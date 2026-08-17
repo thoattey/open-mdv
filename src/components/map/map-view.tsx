@@ -96,12 +96,6 @@ export const MapView = forwardRef<MapHandle, MapViewProps>(function MapView(
           // OL's FeatureLoader must return void, so the async work runs in an
           // inner function and reports back through success/failure.
           loader: (extent, _resolution, projection, success, failure) => {
-            const view = mapRef.current?.getView();
-            if (view && (view.getZoom() ?? 0) < (def.minZoom ?? 0)) {
-              success?.([]);
-              return;
-            }
-
             const [minLon, minLat, maxLon, maxLat] = transformExtent(
               extent,
               projection,
@@ -159,6 +153,14 @@ export const MapView = forwardRef<MapHandle, MapViewProps>(function MapView(
         source,
         style: styleFn as never,
         declutter: def.key === 'island_names' || def.key === 'addresses',
+        // Gate tiled layers at the layer, not inside the loader. A loader that
+        // reports "no features here" still marks the extent loaded, and the
+        // bbox strategy never re-requests an extent contained in a loaded one —
+        // so a zoomed-out first frame permanently suppressed every later
+        // request inside it. Out of view, the layer is not rendered at all and
+        // its source is left untouched. OL's minZoom is exclusive (visible when
+        // zoom > minZoom), while our thresholds are inclusive, hence the nudge.
+        minZoom: def.minZoom === undefined ? undefined : def.minZoom - 1e-6,
       });
       layer.set('layerKey', def.key);
       layer.setVisible(def.defaultOn);

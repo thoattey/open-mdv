@@ -1,124 +1,26 @@
 'use client';
 
+import {
+  Field,
+  NumberField,
+  Section,
+  TextField,
+  Toggle,
+  ValueChips,
+} from '@/components/console/fields';
 import type { AddressFilters, Facets, ResidentFilters } from '@/lib/grid';
 
 /**
  * The console's filter rail. Every control is a controlled input that writes one
  * key of the active filter object; the page owns the state and debounces it
  * before hitting the API, so nothing here needs to know about fetching.
+ *
+ * The controls themselves live in components/console/fields, shared with the
+ * /business console.
  */
 
 /** Narrow setter: `patch({ island: 'Male' })` merges into the current filters. */
 type Patch<T> = (partial: Partial<T>) => void;
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <fieldset className="border-t border-[var(--mx-line)] px-3 py-3">
-      <legend className="mx-label px-1">{title}</legend>
-      <div className="space-y-2.5">{children}</div>
-    </fieldset>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mx-label mb-1 block">{label}</span>
-      {children}
-    </label>
-  );
-}
-
-function TextField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  list,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  list?: string;
-}) {
-  return (
-    <Field label={label}>
-      <input
-        className="mx-field"
-        value={value}
-        list={list}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete="off"
-        spellCheck={false}
-      />
-    </Field>
-  );
-}
-
-function NumberField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  step,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  step?: string;
-}) {
-  return (
-    <Field label={label}>
-      <input
-        type="number"
-        step={step}
-        className="mx-field"
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </Field>
-  );
-}
-
-function Toggle({
-  label,
-  hint,
-  on,
-  onChange,
-}: {
-  label: string;
-  hint?: string;
-  on: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!on)}
-      className="flex w-full items-start gap-2 text-left"
-      aria-pressed={on}
-    >
-      <span
-        className="mt-px shrink-0 border px-1 leading-4"
-        style={{
-          borderColor: 'var(--mx-line)',
-          color: on ? '#000' : 'var(--mx-dim)',
-          background: on ? 'var(--mx-fg)' : 'transparent',
-        }}
-      >
-        {on ? 'x' : ' '}
-      </span>
-      <span>
-        <span className="block text-[11px] uppercase tracking-[0.12em]">{label}</span>
-        {hint && <span className="block text-[10px] text-[var(--mx-dim)]">{hint}</span>}
-      </span>
-    </button>
-  );
-}
 
 /** Atoll codes as toggle chips, annotated with how much data each holds. */
 function AtollPicker({
@@ -132,43 +34,13 @@ function AtollPicker({
   onChange: (next: string[]) => void;
   countOf: (a: Facets['atolls'][number]) => number;
 }) {
-  const atolls = (facets?.atolls ?? []).filter((a) => countOf(a) > 0);
-  if (!atolls.length) return <p className="text-[10px] text-[var(--mx-dim)]">awaiting facets…</p>;
-
   return (
-    <div>
-      <div className="mb-1 flex items-center justify-between">
-        <span className="mx-label">Atoll</span>
-        {selected.length > 0 && (
-          <button
-            type="button"
-            className="text-[10px] uppercase text-[var(--mx-dim)] hover:text-[var(--mx-fg)]"
-            onClick={() => onChange([])}
-          >
-            clear ({selected.length})
-          </button>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-1">
-        {atolls.map((a) => {
-          const on = selected.includes(a.code);
-          return (
-            <button
-              key={a.code}
-              type="button"
-              className="mx-chip"
-              data-on={on}
-              title={`${countOf(a).toLocaleString()} rows`}
-              onClick={() =>
-                onChange(on ? selected.filter((c) => c !== a.code) : [...selected, a.code])
-              }
-            >
-              {a.code}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <ValueChips
+      label="Atoll"
+      values={(facets?.atolls ?? []).map((a) => ({ value: a.code, n: countOf(a) }))}
+      selected={selected}
+      onChange={onChange}
+    />
   );
 }
 
