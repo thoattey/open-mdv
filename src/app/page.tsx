@@ -25,6 +25,11 @@ const MapView = dynamic(() => import('@/components/map/map-view').then((m) => m.
 
 const DEFAULT_VISIBILITY = Object.fromEntries(UI_LAYERS.map((l) => [l.key, l.defaultOn]));
 
+/** Feature properties arrive loosely typed; keep only non-blank text. */
+function text(value: unknown): string {
+  return value === null || value === undefined ? '' : String(value).trim();
+}
+
 export default function Page() {
   const { theme, toggle } = useTheme();
   const mapRef = useRef<MapHandle>(null);
@@ -55,15 +60,52 @@ export default function Page() {
     setResidentsLoading(false);
   }, []);
 
+  /** Everyone registered at a house name, narrowed by island/atoll when known. */
+  const loadResidents = useCallback(
+    async (hname: string, island?: string | null, atoll?: string | null) => {
+      const req = ++residentsReq.current;
+      setAddressResidents(null);
+      setResidentsLoading(true);
+
+      const params = new URLSearchParams({ hname });
+      if (island) params.set('island', island);
+      if (atoll) params.set('atoll', atoll);
+
+      try {
+        const data = await fetch(`/api/address-residents?${params}`).then((r) => r.json());
+        if (req !== residentsReq.current) return;
+        setAddressResidents(data.results ?? []);
+      } catch {
+        if (req !== residentsReq.current) return;
+        setAddressResidents([]);
+      } finally {
+        if (req === residentsReq.current) setResidentsLoading(false);
+      }
+    },
+    [],
+  );
+
   const handleFeatureClick = useCallback(
     (newHits: FeatureHit[], coord: [number, number]) => {
-      setHits(newHits.length ? newHits : null);
+      // A click on an address point usually also hits the parcel and plot lines
+      // underneath it. The address is the record the user aimed at, so it leads
+      // the panel — and, as in search, it brings its resident list with it.
+      const address = newHits.find((h) => h.layer === 'addresses');
+      const ordered = address ? [address, ...newHits.filter((h) => h !== address)] : newHits;
+
+      setHits(ordered.length ? ordered : null);
       setClickCoord(coord);
       setLocationNote(null);
-      clearResidents();
       mapRef.current?.clearHighlight();
+
+      const hname = text(address?.properties.hname);
+      if (hname) {
+        void loadResidents(hname, text(address!.properties.IslandName), text(address!.properties.Atoll));
+      } else {
+        clearResidents();
+      }
     },
-    [clearResidents],
+    [clearResidents, loadResidents],
   );
 
   const handlePickIsland = useCallback(
@@ -76,37 +118,24 @@ export default function Page() {
     [clearResidents],
   );
 
-  const handlePickAddress = useCallback(async (address: AddressResult) => {
-    mapRef.current?.highlight(address.lon, address.lat, 18);
-    setHits([
-      {
-        layer: 'addresses',
-        properties: { hname: address.hname, IslandName: address.island, Atoll: address.atoll },
-      },
-    ]);
-    setClickCoord([address.lon, address.lat]);
-    setLocationNote(null);
-    setMobileSearchOpen(false);
+  const handlePickAddress = useCallback(
+    (address: AddressResult) => {
+      mapRef.current?.highlight(address.lon, address.lat, 18);
+      setHits([
+        {
+          layer: 'addresses',
+          properties: { hname: address.hname, IslandName: address.island, Atoll: address.atoll },
+        },
+      ]);
+      setClickCoord([address.lon, address.lat]);
+      setLocationNote(null);
+      setMobileSearchOpen(false);
 
-    // Then list everyone registered at that address.
-    const req = ++residentsReq.current;
-    setAddressResidents(null);
-    setResidentsLoading(true);
-    const params = new URLSearchParams({ hname: address.hname });
-    if (address.island) params.set('island', address.island);
-    if (address.atoll) params.set('atoll', address.atoll);
-
-    try {
-      const data = await fetch(`/api/address-residents?${params}`).then((r) => r.json());
-      if (req !== residentsReq.current) return;
-      setAddressResidents(data.results ?? []);
-    } catch {
-      if (req !== residentsReq.current) return;
-      setAddressResidents([]);
-    } finally {
-      if (req === residentsReq.current) setResidentsLoading(false);
-    }
-  }, []);
+      // Then list everyone registered at that address.
+      void loadResidents(address.hname, address.island, address.atoll);
+    },
+    [loadResidents],
+  );
 
   const handlePickResident = useCallback(
     async (resident: ResidentResult) => {
